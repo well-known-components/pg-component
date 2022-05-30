@@ -37,7 +37,6 @@
   },
   "dependencies": {
     "@types/pg": "^8.6.5",
-    "@well-known-components/http-server": "^1.1.0",
     "@well-known-components/interfaces": "^1.1.0",
     "pg": "^8.7.3",
     "pg-query-stream": "^4.2.3",

@@ -9,19 +9,6 @@ import { IPgComponent, IMetricsComponent, QueryStreamWithCallback } from "./type
 export * from "./types"
 export * from "./metrics"
 
-export function createTestDatabaseComponent(): IPgComponent {
-  return {
-    async query() {
-      throw new Error("Not implemented")
-    },
-    async *streamQuery() {
-      throw new Error("Not implemented")
-    },
-    async start() {},
-    async stop() {},
-  }
-}
-
 export async function createPgComponent(
   components: createPgComponent.NeededComponents,
   options?: PoolConfig
@@ -153,9 +140,14 @@ export async function createPgComponent(
     await promise
   }
 
+  function getPool(): Pool {
+    return pool
+  }
+
   return {
     query,
     streamQuery,
+    getPool,
     start,
     stop,
   }

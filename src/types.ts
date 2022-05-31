@@ -4,6 +4,9 @@ import { SQLStatement } from "sql-template-strings"
 import QueryStream from "pg-query-stream"
 import { metricDeclarations } from "./metrics"
 
+/**
+ * @internal
+ */
 export type QueryStreamWithCallback = QueryStream & { callback: Function }
 
 /**

@@ -201,13 +201,13 @@ test("pg component", function ({ components }) {
       })
     })
 
-    describe("and there're queries pending", () => {
+    describe("and there're pending queries", () => {
       describe("and the waitingCount is still active before ending", () => {
         const queue = [1, 2]
 
         beforeEach(() => {
           ;(pool as any)._pendingQueue = queue
-          ;(setTimeout as jest.Mock).mockImplementation((time: number) => {
+          ;(setTimeout as jest.Mock).mockImplementation(async (time: number) => {
             if (time === 200) {
               queue.pop()
             }
@@ -219,6 +219,36 @@ test("pg component", function ({ components }) {
           expect(setTimeout).toHaveBeenNthCalledWith(1, 200)
           expect(setTimeout).toHaveBeenNthCalledWith(2, 200)
           expect(setTimeout).toHaveBeenCalledTimes(2)
+        })
+      })
+
+      describe("and the totalCount is still active before ending", () => {
+        let resolve: Function
+        const clients = [1, 2, 3]
+
+        beforeEach(() => {
+          const promise = new Promise((done) => {
+            resolve = done
+          })
+          ;(pool.end as jest.Mock).mockImplementationOnce(() => promise)
+          ;(pool as any)._clients = clients
+          ;(setTimeout as jest.Mock).mockImplementation(async (time: number) => {
+            if (time === 1000) {
+              clients.pop()
+              if (clients.length === 0) {
+                resolve()
+              }
+            }
+          })
+        })
+
+        it("should wait 1000ms after the end for each type of idle count", async () => {
+          await pg.stop()
+
+          expect(setTimeout).toHaveBeenNthCalledWith(1, 1000)
+          expect(setTimeout).toHaveBeenNthCalledWith(2, 1000)
+          expect(setTimeout).toHaveBeenNthCalledWith(3, 1000)
+          expect(setTimeout).toHaveBeenCalledTimes(3)
         })
       })
     })

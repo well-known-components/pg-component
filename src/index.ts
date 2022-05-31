@@ -9,6 +9,11 @@ import { IPgComponent, IMetricsComponent, QueryStreamWithCallback } from "./type
 export * from "./types"
 export * from "./metrics"
 
+/**
+ * Query a Postgres (https://www.postgresql.org) database with ease.
+ * It uses a pool behind the scenes and will try to gracefully close it after finishing the connection.
+ * @public
+ */
 export async function createPgComponent(
   components: createPgComponent.NeededComponents,
   options?: PoolConfig

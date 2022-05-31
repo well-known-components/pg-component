@@ -42,7 +42,7 @@ export async function createPgComponent(
       const db = await pool.connect()
       db.release()
     } catch (error) {
-      logger.error("An error occurred trying to open the database. Did you run the migrations?")
+      logger.error(`An error occurred trying to open the database. Error: '${(error as Error).message}'`)
       throw error
     }
   }
@@ -103,7 +103,7 @@ export async function createPgComponent(
 
   async function stop() {
     if (didStop) {
-      logger.error("Stop called twice")
+      logger.error("Stop called more than once")
       return
     }
     didStop = true

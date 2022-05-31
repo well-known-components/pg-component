@@ -14,18 +14,18 @@ export type GlobalContext = { components: IPgComponent.Composable }
 export type TestComponents = createPgComponent.NeededComponents & IPgComponent.Composable
 
 export const SUBGRAPH_URL = "https://mock-subgraph.url.com"
+export const GRACE_PERIODS = 3
 
+export const logger = {
+  log: jest.fn(),
+  debug: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  info: jest.fn(),
+}
 function createTestConsoleLogComponent(): ILoggerComponent {
   return {
-    getLogger: () => {
-      return {
-        log: () => {},
-        debug: () => {},
-        error: () => {},
-        warn: () => {},
-        info: () => {},
-      }
-    },
+    getLogger: () => logger,
   }
 }
 
@@ -41,7 +41,9 @@ export const test = createRunner<TestComponents>({
     await startComponents()
   },
   async initComponents(): Promise<TestComponents> {
-    const config = createConfigComponent(process.env)
+    const config = createConfigComponent(process.env, {
+      PG_COMPONENT_GRACE_PERIODS: GRACE_PERIODS.toString(),
+    })
 
     const logs = createTestConsoleLogComponent()
     const metrics = await createMetricsComponent(metricDeclarations, { config })

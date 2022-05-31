@@ -1,8 +1,9 @@
 import { Pool } from "pg"
 
 export function mockConnect(pool: Pool) {
-  jest.spyOn(pool, "connect").mockImplementation(() => ({
+  const mock = {
     release: jest.fn(),
-  }))
-  return pool
+  }
+  jest.spyOn(pool, "connect").mockImplementation(() => mock)
+  return mock
 }

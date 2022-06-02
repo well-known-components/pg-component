@@ -45,7 +45,7 @@ test("pg component", function ({ components }) {
           throw new Error(errorMessage)
         })
 
-        await expect(() => pg.start()).rejects.toThrow(errorMessage)
+        await expect(pg.start()).rejects.toThrow(errorMessage)
         expect(logger.error).toHaveBeenCalledWith(
           `An error occurred trying to open the database. Error: '${errorMessage}'`
         )

@@ -9,11 +9,12 @@ import { IConfigComponent } from '@well-known-components/interfaces';
 import { IDatabase } from '@well-known-components/interfaces';
 import { ILoggerComponent } from '@well-known-components/interfaces';
 import { IMetricsComponent as IMetricsComponent_2 } from '@well-known-components/interfaces';
+import { Pool } from 'pg';
 import { PoolConfig } from 'pg';
 import QueryStream from 'pg-query-stream';
 import { SQLStatement } from 'sql-template-strings';
 
-// @public (undocumented)
+// @public
 export function createPgComponent(components: createPgComponent.NeededComponents, options?: PoolConfig): Promise<IPgComponent & IBaseComponent>;
 
 // @public (undocumented)
@@ -27,13 +28,12 @@ export namespace createPgComponent {
 }
 
 // @public (undocumented)
-export function createTestDatabaseComponent(): IPgComponent;
-
-// @public (undocumented)
 export type IMetricsComponent = IMetricsComponent_2<keyof typeof metricDeclarations>;
 
 // @public (undocumented)
 export interface IPgComponent extends IDatabase {
+    // (undocumented)
+    getPool(): Pool;
     // (undocumented)
     query<T>(sql: string): Promise<IDatabase.IQueryResult<T>>;
     // (undocumented)
@@ -49,17 +49,19 @@ export interface IPgComponent extends IDatabase {
 }
 
 // @public (undocumented)
-export namespace ISubgraphComponent {
+export namespace IPgComponent {
     // (undocumented)
     export type Composable = {
-        subgraph: IPgComponent;
+        pg: IPgComponent;
     };
 }
 
 // @public
 export const metricDeclarations: IMetricsComponent_2.MetricsRecordDefinition<string>;
 
-// @public (undocumented)
+// Warning: (ae-internal-missing-underscore) The name "QueryStreamWithCallback" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export type QueryStreamWithCallback = QueryStream & {
     callback: Function;
 };

@@ -22,7 +22,8 @@ export async function createPgComponent(
   const logger = logs.getLogger("pg-component")
 
   // Environment
-  const [port, host, database, user, password, idleTimeoutMillis, query_timeout] = await Promise.all([
+  const [connectionString, port, host, database, user, password, idleTimeoutMillis, query_timeout] = await Promise.all([
+    config.getString("PG_COMPONENT_PSQL_CONNECTION_STRING"),
     config.getNumber("PG_COMPONENT_PSQL_PORT"),
     config.getString("PG_COMPONENT_PSQL_HOST"),
     config.getString("PG_COMPONENT_PSQL_DATABASE"),
@@ -31,7 +32,16 @@ export async function createPgComponent(
     config.getNumber("PG_COMPONENT_IDLE_TIMEOUT"),
     config.getNumber("PG_COMPONENT_QUERY_TIMEOUT"),
   ])
-  const defaultOptions = { port, host, database, user, password, idleTimeoutMillis, query_timeout }
+  const defaultOptions: PoolConfig = {
+    connectionString,
+    port,
+    host,
+    database,
+    user,
+    password,
+    idleTimeoutMillis,
+    query_timeout,
+  }
 
   const STREAM_QUERY_TIMEOUT = await config.getNumber("PG_COMPONENT_STREAM_QUERY_TIMEOUT")
   const GRACE_PERIODS = (await config.getNumber("PG_COMPONENT_GRACE_PERIODS")) || 10

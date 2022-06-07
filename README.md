@@ -57,11 +57,14 @@ It supports the following ENV variables:
 
 First everything related with connecting to [Postgres](https://www.postgresql.org/):
 
+- `PG_COMPONENT_PSQL_CONNECTION_STRING`
 - `PG_COMPONENT_PSQL_PORT`
 - `PG_COMPONENT_PSQL_HOST`
 - `PG_COMPONENT_PSQL_DATABASE`
 - `PG_COMPONENT_PSQL_USER`
 - `PG_COMPONENT_PSQL_PASSWORD`
+
+You'll probably use either the CONNECTION_STRING **or** the other params and not both.
 
 Then the variables related to [Postgres](https://www.postgresql.org/)'s query timeouts:
 

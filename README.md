@@ -9,7 +9,7 @@ A port used to query [pg](https://www.postgresql.org/).
 To create the component you have the option of:
 
 - Supplying any `PoolConfig` options you want. This are related 1:1 with [node-postgres](https://node-postgres.com/api/pool) implementation, which in turn are all variables [Postgres](https://www.postgresql.org/) supports
-- Supplying any `RunnerOption`. This are related 1:1 with [node-pg-migrate](https://github.com/salsita/node-pg-migrate) implementation.
+- Supplying any `RunnerOption`. This are related 1:1 with [node-pg-migrate](https://github.com/salsita/node-pg-migrate) implementation and will be used for [migrations](#migrations)
 
 ```ts
 await createPgComponent({ config, logs, metrics } /* optional config here */)
@@ -35,7 +35,7 @@ const config = {
 
 You'd normally won't have to call this function, as that is taken care by the [`Lifecycle.run`](https://github.com/well-known-components/interfaces) method. But the method will:
 
-- Try to run migrations ONLY IF you supplied migration options when creating the component
+- Try to run [migrations](#migrations) ONLY IF you supplied migration options when creating the component
 - Start an internal pool of connections with the database
 
 ### Query
@@ -75,6 +75,27 @@ but it returns a generator. To use it:
 for await (const row of database.streamQuery<TableType>(query, { batchSize: 10000 })) {
   yield row.some_value
 }
+```
+
+## Migrations
+
+If you want to have migrations for your database, this component allows for the use of [node-pg-migrate](https://github.com/salsita/node-pg-migrate) as a proxy. For this you'll need to:
+
+- Supply the necessary [runner options](#create) on your component creation. You'd normaly want to use 'up' as a migration direction
+- For creating new migrations or any other type of interaction with the [node-pg-migrate](https://github.com/salsita/node-pg-migrate) binary, you can use `pg_component`. This binary is a proxy for node-pg-migrate adding some opinionated options that can be overriden. To use:
+
+**package.json**
+
+```json
+"scripts": {
+  "migrate": "@well-known-components/pg-component migrate --"
+}
+```
+
+**use**
+
+```bash
+$ npm run migrate create create-your-table
 ```
 
 ## Configuration

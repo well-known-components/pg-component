@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import * as path from "path"
 import { spawn } from "child_process"
 
@@ -26,7 +28,7 @@ export function migrate(commandArguments: string[]) {
   console.log("Running command:")
   console.dir(`node-pg-migrate ${spawnArgs.join(" ")}`)
 
-  const child = spawn(path.resolve(__dirname, "node_modules", "bin", "node-pg-migrate"), spawnArgs)
+  const child = spawn(path.resolve("./", "node_modules", "node-pg-migrate", "bin"), spawnArgs)
 
   child.stdout.on("data", (data: any) => {
     console.log(data.toString())

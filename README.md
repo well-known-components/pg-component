@@ -88,7 +88,7 @@ If you want to have migrations for your database, this component allows for the 
 
 ```json
 "scripts": {
-  "migrate": "@well-known-components/pg-component migrate --"
+  "migrate": "pg-component migrate"
 }
 ```
 

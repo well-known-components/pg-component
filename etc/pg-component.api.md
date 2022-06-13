@@ -12,10 +12,11 @@ import { IMetricsComponent as IMetricsComponent_2 } from '@well-known-components
 import { Pool } from 'pg';
 import { PoolConfig } from 'pg';
 import QueryStream from 'pg-query-stream';
+import { RunnerOption } from 'node-pg-migrate';
 import { SQLStatement } from 'sql-template-strings';
 
 // @public
-export function createPgComponent(components: createPgComponent.NeededComponents, options?: PoolConfig): Promise<IPgComponent & IBaseComponent>;
+export function createPgComponent(components: createPgComponent.NeededComponents, options?: Options): Promise<IPgComponent & IBaseComponent>;
 
 // @public (undocumented)
 export namespace createPgComponent {
@@ -32,7 +33,7 @@ export type IMetricsComponent = IMetricsComponent_2<keyof typeof metricDeclarati
 
 // @public (undocumented)
 export interface IPgComponent extends IDatabase {
-    // (undocumented)
+    // @internal (undocumented)
     getPool(): Pool;
     // (undocumented)
     query<T>(sql: string): Promise<IDatabase.IQueryResult<T>>;
@@ -58,6 +59,12 @@ export namespace IPgComponent {
 
 // @public
 export const metricDeclarations: IMetricsComponent_2.MetricsRecordDefinition<string>;
+
+// @public (undocumented)
+export type Options = Partial<{
+    pool: PoolConfig;
+    migration: RunnerOption;
+}>;
 
 // Warning: (ae-internal-missing-underscore) The name "QueryStreamWithCallback" should be prefixed with an underscore because the declaration is marked as @internal
 //

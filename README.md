@@ -6,11 +6,37 @@ A port used to query [pg](https://www.postgresql.org/).
 
 ### Create
 
-To create the component you have the option of supplying any `PoolConfig` options you want. This are related 1:1 with [node-postgres](https://node-postgres.com/api/pool) implementation, which in turn are all variables [Postgres](https://www.postgresql.org/) supports
+To create the component you have the option of:
+
+- Supplying any `PoolConfig` options you want. This are related 1:1 with [node-postgres](https://node-postgres.com/api/pool) implementation, which in turn are all variables [Postgres](https://www.postgresql.org/) supports
+- Supplying any `RunnerOption`. This are related 1:1 with [node-pg-migrate](https://github.com/salsita/node-pg-migrate) implementation.
 
 ```ts
 await createPgComponent({ config, logs, metrics } /* optional config here */)
+
+// A possible optional'd look like:
+const config = {
+  pool: {
+    user: "admin",
+    password: "admin",
+    database: "really_secure",
+  },
+  migrate: {
+    databaseUrl: connectionString,
+    dir: __dirname,
+    migrationsTable: "pgmigrations",
+    ignorePattern: ".*\\.ts",
+    direction: "up",
+  },
+}
 ```
+
+### Start
+
+You'd normally won't have to call this function, as that is taken care by the [`Lifecycle.run`](https://github.com/well-known-components/interfaces) method. But the method will:
+
+- Try to run migrations ONLY IF you supplied migration options when creating the component
+- Start an internal pool of connections with the database
 
 ### Query
 

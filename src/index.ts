@@ -1,10 +1,11 @@
 import { IBaseComponent, IConfigComponent, ILoggerComponent, IDatabase } from "@well-known-components/interfaces"
 import { Client, Pool, PoolConfig } from "pg"
 import QueryStream from "pg-query-stream"
+import runner from "node-pg-migrate"
 import { SQLStatement } from "sql-template-strings"
 import { setTimeout } from "timers/promises"
 import { runReportingQueryDurationMetric } from "./utils"
-import { IPgComponent, IMetricsComponent, QueryStreamWithCallback } from "./types"
+import { Options, IPgComponent, IMetricsComponent, QueryStreamWithCallback } from "./types"
 
 export * from "./types"
 export * from "./metrics"
@@ -16,7 +17,7 @@ export * from "./metrics"
  */
 export async function createPgComponent(
   components: createPgComponent.NeededComponents,
-  options?: PoolConfig
+  options: Options = {}
 ): Promise<IPgComponent & IBaseComponent> {
   const { config, logs } = components
   const logger = logs.getLogger("pg-component")
@@ -46,7 +47,7 @@ export async function createPgComponent(
   const STREAM_QUERY_TIMEOUT = await config.getNumber("PG_COMPONENT_STREAM_QUERY_TIMEOUT")
   const GRACE_PERIODS = (await config.getNumber("PG_COMPONENT_GRACE_PERIODS")) || 10
 
-  const finalOptions = { ...defaultOptions, ...options }
+  const finalOptions: PoolConfig = { ...defaultOptions, ...options.pool }
 
   // Config
   const pool: Pool = new Pool(finalOptions)
@@ -54,6 +55,11 @@ export async function createPgComponent(
   // Methods
   async function start() {
     try {
+      if (options.migration) {
+        logger.debug("Running migrations:")
+        await runner(options.migration)
+      }
+
       const db = await pool.connect()
       db.release()
     } catch (error) {

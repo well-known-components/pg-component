@@ -38,6 +38,7 @@
   "dependencies": {
     "@types/pg": "^8.6.5",
     "@well-known-components/interfaces": "^1.1.0",
+    "node-pg-migrate": "^6.2.1",
     "pg": "^8.7.3",
     "pg-query-stream": "^4.2.3",
     "sql-template-strings": "^2.2.2"
@@ -45,6 +46,7 @@
   "peerDependencies": {
     "@well-known-components/interfaces": "^1.1.0"
   },
+  "bin": "./dist/exec.js",
   "files": [
     "dist"
   ]

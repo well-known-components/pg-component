@@ -1,3 +1,4 @@
+import runner from "node-pg-migrate"
 import { Pool } from "pg"
 import SQL from "sql-template-strings"
 import { setTimeout } from "timers/promises"
@@ -5,6 +6,7 @@ import { createPgComponent, IPgComponent } from "../src"
 import { logger, test } from "./components"
 import { mockConnect } from "./utils"
 
+jest.mock("node-pg-migrate")
 jest.mock("timers/promises")
 
 test("pg component", function ({ components }) {
@@ -13,6 +15,32 @@ test("pg component", function ({ components }) {
   })
 
   describe("when starting a database", () => {
+    describe("and migration options are supplied", () => {
+      it("should call the runner", async () => {
+        const { pg, logs, config, metrics } = components
+        const newPg = await createPgComponent(
+          { logs, config, metrics },
+          {
+            migration: {
+              databaseUrl: "some databaseurl",
+              migrationsTable: "pgmigrations",
+              dir: "some/dir",
+              direction: "up",
+            },
+          }
+        )
+        const pool = pg.getPool()
+
+        mockConnect(pool)
+        await pg.start()
+
+        mockConnect(newPg.getPool())
+        await newPg.start()
+
+        expect(runner).toHaveBeenCalledTimes(1)
+      })
+    })
+
     describe("and it's connected successfully", () => {
       it("should call the connect method on the pool", async () => {
         const { pg } = components

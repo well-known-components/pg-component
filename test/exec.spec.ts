@@ -10,7 +10,7 @@ describe("migrate", () => {
 
   beforeEach(() => {
     // replace the current dirname with the path where the migrate was run
-    dirname = __dirname.replace(/\/test$/, "/src")
+    dirname = __dirname.replace(/\/test$/, "")
 
     // We're constructing a barebones child process. If you ever need more control over this, a better implementation will be required
     childProcess = new EventEmitter() as any
@@ -31,12 +31,12 @@ describe("migrate", () => {
 
   it("should spawn a local version of node-pg-migrate", () => {
     migrate([])
-    expect(spawn).toHaveBeenCalledWith(dirname + "/node_modules/bin/node-pg-migrate", DEFAULT_SPAWN_ARGS)
+    expect(spawn).toHaveBeenCalledWith(dirname + "/node_modules/node-pg-migrate/bin", DEFAULT_SPAWN_ARGS)
   })
 
   it("should spawn a appending the supplied arguments", () => {
     migrate(["--some", "arg"])
-    expect(spawn).toHaveBeenCalledWith(dirname + "/node_modules/bin/node-pg-migrate", [
+    expect(spawn).toHaveBeenCalledWith(dirname + "/node_modules/node-pg-migrate/bin", [
       ...DEFAULT_SPAWN_ARGS,
       "--some",
       "arg",

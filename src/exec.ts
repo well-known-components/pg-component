@@ -1,5 +1,3 @@
-#!/usr/bin/env ts-node
-
 import * as path from "path"
 import { spawn } from "child_process"
 

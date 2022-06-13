@@ -1,5 +1,6 @@
 import { IDatabase, IMetricsComponent as IBaseMetricsComponent } from "@well-known-components/interfaces"
-import { Pool } from "pg"
+import { Pool, PoolConfig } from "pg"
+import { RunnerOption } from "node-pg-migrate"
 import { SQLStatement } from "sql-template-strings"
 import QueryStream from "pg-query-stream"
 import { metricDeclarations } from "./metrics"
@@ -12,12 +13,21 @@ export type QueryStreamWithCallback = QueryStream & { callback: Function }
 /**
  * @public
  */
+export type Options = Partial<{ pool: PoolConfig; migration: RunnerOption }>
+
+/**
+ * @public
+ */
 export interface IPgComponent extends IDatabase {
   start(): Promise<void>
 
   query<T>(sql: string): Promise<IDatabase.IQueryResult<T>>
   query<T>(sql: SQLStatement, durationQueryNameLabel?: string): Promise<IDatabase.IQueryResult<T>>
   streamQuery<T = any>(sql: SQLStatement, config?: { batchSize?: number }): AsyncGenerator<T>
+
+  /**
+   * @internal
+   */
   getPool(): Pool
 
   stop(): Promise<void>

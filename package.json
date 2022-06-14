@@ -46,7 +46,6 @@
   "peerDependencies": {
     "@well-known-components/interfaces": "^1.1.0"
   },
-  "bin": "./dist/exec.js",
   "files": [
     "dist"
   ]

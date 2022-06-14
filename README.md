@@ -79,16 +79,16 @@ for await (const row of database.streamQuery<TableType>(query, { batchSize: 1000
 
 ## Migrations
 
-If you want to have migrations for your database, this component allows for the use of [node-pg-migrate](https://github.com/salsita/node-pg-migrate) as a proxy. For this you'll need to:
+If you want to have migrations for your database, this component uses [node-pg-migrate](https://github.com/salsita/node-pg-migrate) as a proxy. For this you'll need to:
 
 - Supply the necessary [runner options](#create) on your component creation. You'd normaly want to use 'up' as a migration direction
-- For creating new migrations or any other type of interaction with the [node-pg-migrate](https://github.com/salsita/node-pg-migrate) binary, you can use `pg_component`. This binary is a proxy for node-pg-migrate adding some opinionated options that can be overriden. To use:
+- For creating new migrations or any other type of interaction you can use the [node-pg-migrate](https://github.com/salsita/node-pg-migrate) binary. To use we recommend:
 
 **package.json**
 
 ```json
 "scripts": {
-  "migrate": "pg-component migrate"
+  "migrate": "node-pg-migrate --database-url-var PG_COMPONENT_PSQL_CONNECTION_STRING --envPath .env -j ts --tsconfig tsconfig.json"
 }
 ```
 

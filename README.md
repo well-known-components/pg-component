@@ -12,20 +12,23 @@ To create the component you have the option of:
 - Supplying any `RunnerOption`. This are related 1:1 with [node-pg-migrate](https://github.com/salsita/node-pg-migrate) implementation and will be used for [migrations](#migrations)
 
 ```ts
+// src/components.ts
+
 await createPgComponent({ config, logs, metrics } /* optional config here */)
 
 // A possible optional'd look like:
-const config = {
+const { config } = createConfigComponent()
+const pgConfig = {
   pool: {
     user: "admin",
     password: "admin",
     database: "really_secure",
   },
-  migrate: {
-    databaseUrl: connectionString,
-    dir: __dirname,
+  migration: {
+    databaseUrl: await config.requireString("PG_COMPONENT_PSQL_CONNECTION_STRING"),
+    dir: path.resolve(__dirname, "migrations"),
     migrationsTable: "pgmigrations",
-    ignorePattern: ".*\\.ts",
+    ignorePattern: ".*\\.map", // avoid sourcemaps
     direction: "up",
   },
 }
@@ -88,7 +91,7 @@ If you want to have migrations for your database, this component uses [node-pg-m
 
 ```json
 "scripts": {
-  "migrate": "node-pg-migrate --database-url-var PG_COMPONENT_PSQL_CONNECTION_STRING --envPath .env -j ts --tsconfig tsconfig.json"
+  "migrate": "node-pg-migrate --database-url-var PG_COMPONENT_PSQL_CONNECTION_STRING --envPath .env -j ts --tsconfig tsconfig.json -m ./src/migrations"
 }
 ```
 

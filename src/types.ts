@@ -21,8 +21,8 @@ export type Options = Partial<{ pool: PoolConfig; migration: RunnerOption }>
 export interface IPgComponent extends IDatabase {
   start(): Promise<void>
 
-  query<T>(sql: string): Promise<IDatabase.IQueryResult<T>>
-  query<T>(sql: SQLStatement, durationQueryNameLabel?: string): Promise<IDatabase.IQueryResult<T>>
+  query<T extends Record<string, any>>(sql: string): Promise<IDatabase.IQueryResult<T>>
+  query<T extends Record<string, any>>(sql: SQLStatement, durationQueryNameLabel?: string): Promise<IDatabase.IQueryResult<T>>
   streamQuery<T = any>(sql: SQLStatement, config?: { batchSize?: number }): AsyncGenerator<T>
 
   /**

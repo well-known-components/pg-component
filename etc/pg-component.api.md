@@ -36,9 +36,9 @@ export interface IPgComponent extends IDatabase {
     // @internal (undocumented)
     getPool(): Pool;
     // (undocumented)
-    query<T>(sql: string): Promise<IDatabase.IQueryResult<T>>;
+    query<T extends Record<string, any>>(sql: string): Promise<IDatabase.IQueryResult<T>>;
     // (undocumented)
-    query<T>(sql: SQLStatement, durationQueryNameLabel?: string): Promise<IDatabase.IQueryResult<T>>;
+    query<T extends Record<string, any>>(sql: SQLStatement, durationQueryNameLabel?: string): Promise<IDatabase.IQueryResult<T>>;
     // (undocumented)
     start(): Promise<void>;
     // (undocumented)

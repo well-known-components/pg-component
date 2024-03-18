@@ -10,15 +10,17 @@ on:
 name: CI
 jobs:
   build:
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
-      - name: Use Node.js 16.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v1
         with:
-          node-version: 16.x
+          node-version: 18.x
       - name: install
-        run: npm install
+        run: yarn
       - name: build
         run: make build
       - name: test

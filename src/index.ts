@@ -68,23 +68,17 @@ export async function createPgComponent(
     }
   }
 
-  async function query<T extends Record<string, any>>(sql: string): Promise<IDatabase.IQueryResult<T>>
-  async function query<T extends Record<string, any>>(
-    sql: SQLStatement,
-    durationQueryNameLabel?: string
-  ): Promise<IDatabase.IQueryResult<T>>
-  async function query<T extends Record<string, any>>(
-    sql: string | SQLStatement,
-    durationQueryNameLabel?: string
-  ): Promise<IDatabase.IQueryResult<T>> {
-    const rows = durationQueryNameLabel
-      ? await runReportingQueryDurationMetric(components, durationQueryNameLabel, () => pool.query<T>(sql))
-      : await pool.query<T>(sql)
+  async function defaultQuery<T extends Record<string, any>>(sql: string | SQLStatement): Promise<IDatabase.IQueryResult<T>> {
+    const result = await pool.query<T>(sql)
+    return { ...result, rowCount: result.rowCount ?? 0 }
+  }
 
-    return {
-      rows: rows.rows,
-      rowCount: rows.rowCount ?? 0
-    }
+  async function measuredQuery<T extends Record<string, any>>(sql: string | SQLStatement, durationQueryNameLabel?: string): Promise<IDatabase.IQueryResult<T>> {
+    const result = durationQueryNameLabel
+      ? await runReportingQueryDurationMetric({ metrics: components.metrics! }, durationQueryNameLabel, () => defaultQuery<T>(sql))
+      : await defaultQuery<T>(sql)
+
+    return result
   }
 
   async function* streamQuery<T>(sql: SQLStatement, config?: { batchSize?: number }): AsyncGenerator<T> {
@@ -169,7 +163,7 @@ export async function createPgComponent(
   }
 
   return {
-    query,
+    query: components.metrics ? measuredQuery : defaultQuery,
     streamQuery,
     getPool,
     start,
@@ -184,6 +178,6 @@ export namespace createPgComponent {
   export type NeededComponents = {
     logs: ILoggerComponent
     config: IConfigComponent
-    metrics: IMetricsComponent
+    metrics?: IMetricsComponent
   }
 }

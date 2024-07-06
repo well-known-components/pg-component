@@ -24,7 +24,7 @@ export namespace createPgComponent {
     export type NeededComponents = {
         logs: ILoggerComponent;
         config: IConfigComponent;
-        metrics: IMetricsComponent;
+        metrics?: IMetricsComponent;
     };
 }
 

@@ -10,11 +10,12 @@ To create the component you have the option of:
 
 - Supplying any `PoolConfig` options you want. This are related 1:1 with [node-postgres](https://node-postgres.com/api/pool) implementation, which in turn are all variables [Postgres](https://www.postgresql.org/) supports
 - Supplying any `RunnerOption`. This are related 1:1 with [node-pg-migrate](https://github.com/salsita/node-pg-migrate) implementation and will be used for [migrations](#migrations)
+- Supplying a Metrics component ([any `IMetricsComponent`](https://github.com/well-known-components/metrics)). This component will enable additional functionality for collecting metrics on querys.
 
 ```ts
 // src/components.ts
 
-await createPgComponent({ config, logs, metrics } /* optional config here */)
+await createPgComponent({ config, logs, metrics: metrics | undefined } /* optional config here */)
 
 // A possible optional'd look like:
 const { config } = createConfigComponent()
@@ -51,6 +52,7 @@ the API looks like this
 
 ```ts
   query<T>(sql: string): Promise<IDatabase.IQueryResult<T>>
+  // If it has been built with the metrics component this contract is also exposed:
   query<T>(sql: SQLStatement, durationQueryNameLabel?: string): Promise<IDatabase.IQueryResult<T>>
 ```
 
@@ -62,7 +64,7 @@ const id = getIdFromUnreliableSource()
 pg.query<TableType>(SQL`SELECT * FROM table WHERE id = ${id}`) // this results in ['SELECT * FROM table WHERE id = $1', id]
 ```
 
-suppliying a `durationQueryNameLabel` will trigger a metrics increment with that name.
+if `metrics` component has been provided, suppliying a `durationQueryNameLabel` will trigger a metrics increment with that name.
 
 **Streaming a query**
 

@@ -1,0 +1,23 @@
+
+services:
+  postgres:
+    container_name: "test-db"
+    image: 'postgres:latest'
+    user: postgres
+    volumes:
+      - test_postgres_volume:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=pass1234
+      - POSTGRES_DB=test
+    ports:
+      - '15432:5432'
+    networks:
+      - test
+
+volumes:
+  test_postgres_volume:
+
+networks:
+  test:
+    name: 'test'

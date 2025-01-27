@@ -63,7 +63,7 @@ export const metricDeclarations: IMetricsComponent_2.MetricsRecordDefinition<str
 // @public (undocumented)
 export type Options = Partial<{
     pool: PoolConfig;
-    migration: RunnerOption;
+    migration: Omit<RunnerOption, 'databaseUrl' | 'dbClient'>;
 }>;
 
 // Warning: (ae-internal-missing-underscore) The name "QueryStreamWithCallback" should be prefixed with an underscore because the declaration is marked as @internal

@@ -4,6 +4,7 @@ LOCAL_ARG = --local --verbose --diagnostics
 endif
 
 test:
+	docker compose -f docker-compose.yaml up -d --wait
 	node_modules/.bin/jest --detectOpenHandles --colors --runInBand --coverage $(TESTARGS)
 
 test-watch:

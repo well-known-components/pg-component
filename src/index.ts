@@ -1,7 +1,7 @@
 import { IBaseComponent, IConfigComponent, ILoggerComponent, IDatabase } from '@well-known-components/interfaces'
 import { Client, Pool, PoolConfig } from 'pg'
 import QueryStream from 'pg-query-stream'
-import runner from 'node-pg-migrate'
+import runner, { RunnerOption } from 'node-pg-migrate'
 import { SQLStatement } from 'sql-template-strings'
 import { setTimeout } from 'timers/promises'
 import { runReportingQueryDurationMetric } from './utils'
@@ -49,33 +49,60 @@ export async function createPgComponent(
 
   const finalOptions: PoolConfig = { ...defaultOptions, ...options.pool }
 
+  if (!finalOptions.log) {
+    finalOptions.log = logger.debug.bind(logger)
+  }
+
   // Config
   const pool: Pool = new Pool(finalOptions)
 
   // Methods
   async function start() {
     try {
-      if (options.migration) {
-        logger.debug('Running migrations:')
-        await runner(options.migration)
-      }
-
       const db = await pool.connect()
-      db.release()
-    } catch (error) {
-      logger.error(`An error occurred trying to open the database. Error: '${(error as Error).message}'`)
+
+      try {
+        if (options.migration) {
+          logger.debug('Running migrations:')
+
+          const opt: RunnerOption = {
+            ...options.migration,
+            dbClient: db
+          }
+
+          if (!opt.logger) {
+            opt.logger = logger
+          }
+          await runner(opt)
+        }
+      } catch (err: any) {
+        logger.error(err)
+        throw err
+      } finally {
+        db.release()
+      }
+    } catch (error: any) {
+      logger.warn('Error starting pg-component:')
+      logger.error(error)
       throw error
     }
   }
 
-  async function defaultQuery<T extends Record<string, any>>(sql: string | SQLStatement): Promise<IDatabase.IQueryResult<T>> {
+  async function defaultQuery<T extends Record<string, any>>(
+    sql: string | SQLStatement
+  ): Promise<IDatabase.IQueryResult<T>> {
     const result = await pool.query<T>(sql)
     return { ...result, rowCount: result.rowCount ?? 0 }
   }
 
-  async function measuredQuery<T extends Record<string, any>>(sql: string | SQLStatement, durationQueryNameLabel?: string): Promise<IDatabase.IQueryResult<T>> {
+  async function measuredQuery<T extends Record<string, any>>(
+    sql: string | SQLStatement,
+    durationQueryNameLabel?: string
+  ): Promise<IDatabase.IQueryResult<T>> {
     const result = durationQueryNameLabel
-      ? await runReportingQueryDurationMetric({ metrics: components.metrics! }, durationQueryNameLabel, () => defaultQuery<T>(sql))
+      ? await runReportingQueryDurationMetric({ metrics: components.metrics! }, durationQueryNameLabel, () =>
+          defaultQuery<T>(sql)
+        )
       : await defaultQuery<T>(sql)
 
     return result

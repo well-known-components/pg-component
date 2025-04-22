@@ -9,6 +9,7 @@ import { IConfigComponent } from '@well-known-components/interfaces';
 import { IDatabase } from '@well-known-components/interfaces';
 import { ILoggerComponent } from '@well-known-components/interfaces';
 import { IMetricsComponent as IMetricsComponent_2 } from '@well-known-components/interfaces';
+import { NoticeMessage } from 'pg-protocol/dist/messages';
 import { Pool } from 'pg';
 import { PoolConfig } from 'pg';
 import QueryStream from 'pg-query-stream';
@@ -36,9 +37,9 @@ export interface IPgComponent extends IDatabase {
     // @internal (undocumented)
     getPool(): Pool;
     // (undocumented)
-    query<T extends Record<string, any>>(sql: string): Promise<IDatabase.IQueryResult<T>>;
+    query<T extends Record<string, any>>(sql: string): Promise<QueryResult<T>>;
     // (undocumented)
-    query<T extends Record<string, any>>(sql: SQLStatement, durationQueryNameLabel?: string): Promise<IDatabase.IQueryResult<T>>;
+    query<T extends Record<string, any>>(sql: SQLStatement, durationQueryNameLabel?: string): Promise<QueryResult<T>>;
     // (undocumented)
     start(): Promise<void>;
     // (undocumented)
@@ -65,6 +66,11 @@ export type Options = Partial<{
     pool: PoolConfig;
     migration: Omit<RunnerOption, 'databaseUrl' | 'dbClient'>;
 }>;
+
+// @public
+export type QueryResult<T extends Record<string, any>> = IDatabase.IQueryResult<T> & {
+    notices: NoticeMessage[];
+};
 
 // Warning: (ae-internal-missing-underscore) The name "QueryStreamWithCallback" should be prefixed with an underscore because the declaration is marked as @internal
 //

@@ -1,11 +1,12 @@
 import { IBaseComponent, IConfigComponent, ILoggerComponent, IDatabase } from '@well-known-components/interfaces'
-import { Client, Pool, PoolConfig } from 'pg'
+import { Client, Pool, PoolConfig, } from 'pg'
+import { NoticeMessage } from 'pg-protocol/dist/messages'
 import QueryStream from 'pg-query-stream'
 import runner, { RunnerOption } from 'node-pg-migrate'
 import { SQLStatement } from 'sql-template-strings'
 import { setTimeout } from 'timers/promises'
 import { runReportingQueryDurationMetric } from './utils'
-import { Options, IPgComponent, IMetricsComponent, QueryStreamWithCallback } from './types'
+import { Options, IPgComponent, IMetricsComponent, QueryStreamWithCallback, QueryResult } from './types'
 
 export * from './types'
 export * from './metrics'
@@ -90,19 +91,34 @@ export async function createPgComponent(
 
   async function defaultQuery<T extends Record<string, any>>(
     sql: string | SQLStatement
-  ): Promise<IDatabase.IQueryResult<T>> {
-    const result = await pool.query<T>(sql)
-    return { ...result, rowCount: result.rowCount ?? 0 }
+  ): Promise<QueryResult<T>> {
+    const notices: NoticeMessage[] = []
+
+    const client = await pool.connect()
+
+    function listenNotice(notice: NoticeMessage) {
+      notices.push(notice)
+    }
+
+    try {
+      client.on('notice', listenNotice)
+
+      const result = await client.query<T>(sql)
+      return { ...result, rowCount: result.rowCount ?? 0, notices }
+    } finally {
+      client.off('notice', listenNotice)
+      client.release()
+    }
   }
 
   async function measuredQuery<T extends Record<string, any>>(
     sql: string | SQLStatement,
     durationQueryNameLabel?: string
-  ): Promise<IDatabase.IQueryResult<T>> {
+  ): Promise<QueryResult<T>> {
     const result = durationQueryNameLabel
       ? await runReportingQueryDurationMetric({ metrics: components.metrics! }, durationQueryNameLabel, () =>
-          defaultQuery<T>(sql)
-        )
+        defaultQuery<T>(sql)
+      )
       : await defaultQuery<T>(sql)
 
     return result
@@ -122,7 +138,7 @@ export async function createPgComponent(
       // finish - with error, this call is necessary to finish the query when we configure query_timeout due to a bug in pg
       const stream = new QueryStream(sql.text, sql.values, config) as QueryStreamWithCallback
 
-      stream.callback = function () {
+      stream.callback = function() {
         // noop
       }
 

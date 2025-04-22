@@ -55,6 +55,30 @@ test('should run migrations UP', async () => {
   await stopComponents(components)
 })
 
+test('should return notices and the client keeps working', async () => {
+  const components = await initComponents({
+    migration: {
+      migrationsTable: 'pgmigrations',
+      dir: __dirname + '/migrations',
+      direction: 'up'
+    }
+  })
+
+  await startComponents(components)
+
+  await Promise.all(new Array(100).fill(null).map(async () => {
+    const tableName = `inexistenttable_${(Math.random() * 10000).toFixed()}`
+    const withNotices = await components.pg.query(`DROP TABLE IF EXISTS ${tableName}`)
+
+    expect(withNotices.notices[0].message).toEqual(`table "${tableName}" does not exist, skipping`)
+  }))
+
+  // regular queries keep working
+  await components.pg.query(`SELECT * FROM jobs`)
+
+  await stopComponents(components)
+})
+
 test('should run migrations DOWN', async () => {
   const components = await initComponents({
     migration: {
@@ -94,7 +118,7 @@ test('streaming works', async () => {
 })
 
 xdescribe('when starting a database', () => {
-  xdescribe('and migration options are supplied', () => {})
+  xdescribe('and migration options are supplied', () => { })
 
   xdescribe("and it's connected successfully", () => {
     it('should call the connect method on the pool', async () => {
@@ -218,12 +242,12 @@ xdescribe('when querying a database', () => {
         const { pg } = await initComponents({})
 
         const pool = pg.getPool()
-        ;(pool.query as jest.Mock).mockReset().mockImplementation(() => {
-          throw new Error('Wrong query')
-        })
+          ; (pool.query as jest.Mock).mockReset().mockImplementation(() => {
+            throw new Error('Wrong query')
+          })
         try {
           await pg.query(query, queryNameLabel)
-        } catch (error) {}
+        } catch (error) { }
 
         expect(metricEnd).toHaveBeenCalledWith({ status: 'error' })
       })
@@ -266,12 +290,12 @@ xdescribe('when stopping a database', () => {
       const queue = [1, 2]
 
       beforeEach(() => {
-        ;(pool as any)._pendingQueue = queue
-        ;(setTimeout as jest.Mock).mockImplementation(async (time: number) => {
-          if (time === 200) {
-            queue.pop()
-          }
-        })
+        ; (pool as any)._pendingQueue = queue
+          ; (setTimeout as jest.Mock).mockImplementation(async (time: number) => {
+            if (time === 200) {
+              queue.pop()
+            }
+          })
       })
 
       it('should wait 200ms per waiting query', async () => {
@@ -290,16 +314,16 @@ xdescribe('when stopping a database', () => {
         const promise = new Promise((done) => {
           resolve = done
         })
-        ;(pool.end as jest.Mock).mockImplementationOnce(() => promise)
-        ;(pool as any)._clients = clients
-        ;(setTimeout as jest.Mock).mockImplementation(async (time: number) => {
-          if (time === 1000) {
-            clients.pop()
-            if (clients.length === 0) {
-              resolve()
+          ; (pool.end as jest.Mock).mockImplementationOnce(() => promise)
+          ; (pool as any)._clients = clients
+          ; (setTimeout as jest.Mock).mockImplementation(async (time: number) => {
+            if (time === 1000) {
+              clients.pop()
+              if (clients.length === 0) {
+                resolve()
+              }
             }
-          }
-        })
+          })
       })
 
       it('should wait 1000ms after the end for each type of idle count', async () => {

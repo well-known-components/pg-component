@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@well-known-components/interfaces": "^1.5.2",
-    "node-pg-migrate": "^7.9.1",
+    "node-pg-migrate": "^8.0.4",
     "pg": "^8.17.2",
     "pg-query-stream": "^4.11.2",
     "sql-template-strings": "^2.2.2"

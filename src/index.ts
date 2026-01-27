@@ -149,7 +149,7 @@ export async function createPgComponent(
   async function defaultQuery<T extends Record<string, any>>(sql: string | SQLStatement): Promise<QueryResult<T>> {
     const notices: NoticeMessage[] = []
 
-    // Check if we're in a transaction context
+    // Get the transaction's context client or connect a new one
     const client = transactionContext.getStore() ?? (await pool.connect())
 
     function listenNotice(notice: NoticeMessage) {

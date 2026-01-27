@@ -1,5 +1,6 @@
+import { AsyncLocalStorage } from 'async_hooks'
 import { IBaseComponent, IConfigComponent, ILoggerComponent, IDatabase } from '@well-known-components/interfaces'
-import { Client, Pool, PoolConfig, } from 'pg'
+import { Client, Pool, PoolClient, PoolConfig } from 'pg'
 import { NoticeMessage } from 'pg-protocol/dist/messages'
 import QueryStream from 'pg-query-stream'
 import runner, { RunnerOption } from 'node-pg-migrate'
@@ -57,6 +58,9 @@ export async function createPgComponent(
   // Config
   const pool: Pool = new Pool(finalOptions)
 
+  // Async context for transaction client
+  const transactionContext = new AsyncLocalStorage<PoolClient>()
+
   // Methods
   async function start() {
     try {
@@ -89,12 +93,64 @@ export async function createPgComponent(
     }
   }
 
-  async function defaultQuery<T extends Record<string, any>>(
-    sql: string | SQLStatement
-  ): Promise<QueryResult<T>> {
+  async function withTransaction<T>(
+    callback: (client: PoolClient) => Promise<T>,
+    onError?: (error: unknown) => Promise<void>
+  ): Promise<T> {
+    const client = await pool.connect()
+
+    try {
+      await client.query('BEGIN')
+      const result = await callback(client)
+      await client.query('COMMIT')
+
+      return result
+    } catch (error) {
+      try {
+        await client.query('ROLLBACK')
+      } catch (rollbackError) {
+        logger.error(rollbackError as Error)
+      }
+      if (onError) await onError(error)
+      throw error
+    } finally {
+      // TODO: handle the following eslint-disable statement
+      // eslint-disable-next-line @typescript-eslint/await-thenable
+      await client.release()
+    }
+  }
+
+  async function withAsyncContextTransaction<T>(
+    callback: () => Promise<T>,
+    onError?: (error: unknown) => Promise<void>
+  ): Promise<T> {
+    const client = await pool.connect()
+
+    try {
+      await client.query('BEGIN')
+
+      const result = await transactionContext.run(client, callback)
+
+      await client.query('COMMIT')
+      return result
+    } catch (error) {
+      try {
+        await client.query('ROLLBACK')
+      } catch (rollbackError) {
+        logger.error(rollbackError as Error)
+      }
+      if (onError) await onError(error)
+      throw error
+    } finally {
+      client.release()
+    }
+  }
+
+  async function defaultQuery<T extends Record<string, any>>(sql: string | SQLStatement): Promise<QueryResult<T>> {
     const notices: NoticeMessage[] = []
 
-    const client = await pool.connect()
+    // Check if we're in a transaction context
+    const client = transactionContext.getStore() ?? (await pool.connect())
 
     function listenNotice(notice: NoticeMessage) {
       notices.push(notice)
@@ -117,8 +173,8 @@ export async function createPgComponent(
   ): Promise<QueryResult<T>> {
     const result = durationQueryNameLabel
       ? await runReportingQueryDurationMetric({ metrics: components.metrics! }, durationQueryNameLabel, () =>
-        defaultQuery<T>(sql)
-      )
+          defaultQuery<T>(sql)
+        )
       : await defaultQuery<T>(sql)
 
     return result
@@ -138,7 +194,7 @@ export async function createPgComponent(
       // finish - with error, this call is necessary to finish the query when we configure query_timeout due to a bug in pg
       const stream = new QueryStream(sql.text, sql.values, config) as QueryStreamWithCallback
 
-      stream.callback = function() {
+      stream.callback = function () {
         // noop
       }
 
@@ -207,6 +263,8 @@ export async function createPgComponent(
 
   return {
     query: components.metrics ? measuredQuery : defaultQuery,
+    withTransaction,
+    withAsyncContextTransaction,
     streamQuery,
     getPool,
     start,
